@@ -1,0 +1,8 @@
+*.ipynb
+__pycache__/
+.gitignore
+*.yaml
+poetry.toml
+Dockerfile
+.venv
+*.sh
