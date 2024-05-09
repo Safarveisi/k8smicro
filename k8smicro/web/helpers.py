@@ -1,4 +1,5 @@
 import os
+from typing import Tuple
 
 import boto3
 from botocore.client import ClientError
@@ -20,10 +21,10 @@ class S3Handler():
 
         self.bucket = self.s3.Bucket(os.environ['S3_BUCKET'])
 
-    def check_connection(self) -> str:
+    def check_connection(self) -> Tuple[bool, str]:
         '''Checks the access to the s3 bucket'''
         try:
             self.s3.meta.client.head_bucket(Bucket=self.bucket.name)
-            return 'Access to bucket successful'
+            return True, 'Access to bucket successful'
         except ClientError:
-            return 'The bucket does not exist or you have no access'
+            return False, 'The bucket does not exist or you have no access'

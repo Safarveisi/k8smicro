@@ -76,9 +76,10 @@ async def count_row_with_failed_attrs(month: str, day: str) -> int | None:
 async def s3_health_check():
     '''Checks the S3 connection'''
     global handlers
+    success, msg = handlers['s3'].check_connection()
     return {
-        'serviceStatus': 'OK',
-        'S3ConnectionHealth': handlers['s3'].check_connection()
+        'success': success,
+        'msg': msg
     }
 
 

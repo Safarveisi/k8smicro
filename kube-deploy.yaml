@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: default
   name: web-service
+  namespace: default
 spec:
   selector:
     app: web-app
@@ -28,11 +28,22 @@ spec:
     spec:
       containers:
         - name: web-app
-          image: docker.io/ciaa/web:v0.2.0
+          image: docker.io/ciaa/web:v0.3.0
           resources:
             limits:
-              memory: "1000Mi"
-              cpu: "1000m"
+              memory: "2000Mi"
+              cpu: "2000m"
+          env:
+          - name: AWS_DEFAULT_REGION
+            value: "${AWS_DEFAULT_REGION}"
+          - name: AWS_ACCESS_KEY_ID
+            value: "${AWS_ACCESS_KEY_ID}"
+          - name: AWS_SECRET_ACCESS_KEY
+            value: "${AWS_SECRET_ACCESS_KEY}"
+          - name: S3_ENDPOINT_URL
+            value: "${S3_ENDPOINT_URL}"
+          - name: S3_BUCKET
+            value: "${S3_BUCKET}"
           ports:
             - containerPort: 8000
 ---
@@ -44,4 +55,4 @@ metadata:
 spec:
   containers:
   - name: caller
-    image: docker.io/ciaa/caller:v0.2.0
+    image: docker.io/ciaa/caller:v0.4.0

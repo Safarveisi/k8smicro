@@ -2,24 +2,64 @@ import os
 import time
 import json
 import requests
+import logging
+
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(filename='failed_attrs.log', format=log_format, level=logging.INFO)
+
+DATA = \
+[
+    {
+        "month": "5",
+        "day": "5"
+    },
+    {
+        "month": "5",
+        "day": "6"
+    },
+    {
+        "month": "5",
+        "day": "4"
+    },
+    {
+        "month": "5",
+        "day": "3"
+    }
+]
+
+# Post request payload
+JSON_DATA = json.dumps(DATA)
 
 # K8s service DNS name
 SERVICE_DNS_NAME = 'web-service.default.svc.cluster.local'
-URL = f'http://{SERVICE_DNS_NAME}:80/health/'
+BASE_URL = f'http://{SERVICE_DNS_NAME}:80'
 
-for i in range(1000):
+logging.info('Checking the s3 connection')
 
-    response = requests.get(URL)
+response = requests.get(BASE_URL+'/health/')
 
-    if response.status_code == 200:
-        print('Get request successful')
-        response_dict = json.loads(response.content.decode('utf-8'))
-        with open(
-            os.path.join(os.path.abspath(os.getcwd()),
-                         f'response_{i}.json'), 'w'
-        ) as json_file:
-            json.dump(response_dict, json_file)
+if response.status_code == 200:
+    response_dict = response.json()
+    if response_dict['success']:
+        logging.info(response_dict['msg'])
+        logging.info('Analysing dill files for the requested times ...')
+        response = requests.post(
+            BASE_URL+'/failed_stats/', 
+            data=JSON_DATA, 
+            timeout=20
+            )
+        logging.info('Writing the response into result.json')
+        with open('result.json', 'w') as f:
+            json.dump(response.json(), f)
+        '''
+        Wait 30 seconds to shell the container running
+        in the kubernetes pod
+        '''
+        time.sleep(30)
     else:
-        print(f'Get request failed with status code: {response.status_code}')
+        logging.info(response_dict['msg'])
+        logging.info('Skipe analysing')
+        exit(1)
+else:
+    print(f'Get request failed with status code: {response.status_code}')
 
-    time.sleep(3)
