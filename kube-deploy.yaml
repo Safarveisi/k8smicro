@@ -55,4 +55,4 @@ metadata:
 spec:
   containers:
   - name: caller
-    image: docker.io/ciaa/caller:v0.4.0
+    image: docker.io/ciaa/caller:v0.3.0
