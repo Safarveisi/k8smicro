@@ -51,11 +51,6 @@ if response.status_code == 200:
         logging.info('Writing the response into result.json')
         with open('result.json', 'w') as f:
             json.dump(response.json(), f)
-        '''
-        Wait 30 seconds to shell the container running
-        in the kubernetes pod
-        '''
-        time.sleep(30)
     else:
         logging.info(response_dict['msg'])
         logging.info('Skipe analysing')
