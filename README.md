@@ -10,7 +10,6 @@ to the user.
 | **File/Dir** | **Desc** |
 | --- | --- |
 | `k8smicro` | Directory containing the application source files. </br> `k8smicro/web` contains the source file for the web application and `k8smicro/caller` contains the source file of the client that sends HTTP requests to the web application |
-| `microservice` | Source code for the app |
 | `Dockerfile` | Instructions to create the docker image of the web application and the client |
 | `build-image.sh` | Facilitates building the docker images for the web application and the client. </br> A build argument (`ARG role` in the `Dockerfile`) is used to distinguish between the two components while building the images |
 | `deploy.sh` | Facilitates deploying/removing the service into/from the Kubernetes cluster (use `apply` or `delete` as its argument) |
