@@ -22,14 +22,14 @@ class AnalyseRequest(BaseModel):
     day: str
 
 
-async def get_service_handlers():
+async def get_service_handlers() -> None:
     global handlers
     handlers['s3'] = helpers.S3Handler()
     logging.info('S3 resource service client established')
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> None:
     await get_service_handlers()
     logging.info('Updated global service handlers')
     yield
@@ -73,7 +73,7 @@ async def count_row_with_failed_attrs(month: str, day: str) -> int | None:
 
 
 @app.get('/health/', status_code=200)
-async def s3_health_check():
+async def s3_health_check() -> dict:
     '''Checks the S3 connection'''
     global handlers
     success, msg = handlers['s3'].check_connection()
@@ -84,7 +84,7 @@ async def s3_health_check():
 
 
 @app.post('/failed_stats/', status_code=200)
-async def analyse_dill_files(times: List[AnalyseRequest]):
+async def analyse_dill_files(times: List[AnalyseRequest]) -> List[dict]:
     '''
     Retuns the number of rows in a pandas dataframe  
     whose 'failed_attrs' attribute is not empty for
