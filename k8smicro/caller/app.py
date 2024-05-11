@@ -18,7 +18,6 @@ class AnalyseRequest(BaseModel):
 SERVICE_DNS_NAME = 'web-service.default.svc.cluster.local'
 BASE_URL = f'http://{SERVICE_DNS_NAME}:80'
 
-
 app = FastAPI()
 
 @app.get('/health/', status_code=200)

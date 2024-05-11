@@ -28,7 +28,7 @@ service/caller-service created
 ```
 You then need to map port 8000 of `caller-service` (see `kube-deploy.yaml`) to the port 8000 of the localhost. 
 ```bash
-kubectl --kubeconfig /path/to/kubeconfig.yaml port-forward service/caller-serv
+kubectl --kubeconfig /path/to/kubeconfig.yaml port-forward svc/caller-serv
 ice 8000:8000
 ```
 You can now start sending your http requests to the designated endpoints (via [Postman](https://www.postman.com/), for example).
