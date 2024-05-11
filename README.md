@@ -14,3 +14,26 @@ to the user.
 | `build-image.sh` | Facilitates building the docker images for the web application and the client. </br> A build argument (`ARG role` in the `Dockerfile`) is used to distinguish between the two components while building the images |
 | `deploy.sh` | Facilitates deploying/removing the service into/from the Kubernetes cluster (use `apply` or `delete` as its argument) |
 | `kube-deploy.yaml` | Kubernetes manifest file |
+
+To start the service, run the following in the command line
+```bash
+./deploy.sh apply
+```
+You should see the following output
+```bash
+deployment.apps/web-deployment created
+deployment.apps/caller-deployment created
+service/web-service created
+service/caller-service created
+```
+You then need to map port 8000 of `caller-service` (see `kube-deploy.yaml`) to the port 8000 of the localhost. 
+```bash
+kubectl --kubeconfig /path/to/kubeconfig.yaml port-forward service/caller-serv
+ice 8000:8000
+```
+You can now start sending your http requests to the designated endpoints (via [Postman](https://www.postman.com/), for example).
+
+When you are done, run the following in the command line to remove the deployments and services from the k8s cluster
+```bash
+./deploy.sh delete
+```
