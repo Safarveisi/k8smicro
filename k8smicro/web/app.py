@@ -14,43 +14,45 @@ log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(format=log_format, level=logging.INFO)
 
 handlers = {}
-requested_times = {}
-
 
 class AnalyseRequest(BaseModel):
     month: str
     day: str
 
 
-async def get_service_handlers() -> None:
+async def service_prerequisites() -> None:
     global handlers
     handlers['s3'] = helpers.S3Handler()
     logging.info('S3 resource service client established')
+    helpers.create_postgres_table()
+    logging('Created stats table in the postgres db')
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> None:
-    await get_service_handlers()
-    logging.info('Updated global service handlers')
+    await service_prerequisites()
+    logging.info('Service prerequisites are all set')
     yield
     handlers.clear()
     logging.info('Released resources')
 
 app = FastAPI(lifespan=lifespan)
 
-
-async def count_row_with_failed_attrs(month: str, day: str) -> int | None:
+async def count_row_with_failed_attrs(
+    month: str,
+    day: str
+) -> int | None:
     '''
     Gets all the dill files from a s3 bucket for the given month and day,
     converts them into a pandas dataframe and counts the number of rows 
     whose failed_attrs column is not "empty". 
     '''
     global handlers
-    global requested_times
 
-    # Check the cache
-    if (month, day) in requested_times:
-        return requested_times[(month, day)]
+    # Check the postgres database
+    if num_rows_failed := helpers \
+                    .exists_in_postgres_table(month, day):
+        return num_rows_failed
 
     list_df_validation = []
     objects = handlers['s3'].bucket.objects.filter(
@@ -66,7 +68,7 @@ async def count_row_with_failed_attrs(month: str, day: str) -> int | None:
         # Increment num_rows_failed with the number of rows found
         num_rows_failed += pd.concat(list_df_validation, axis=0) \
             .query("failed_attrs != 'empty'").shape[0]
-        requested_times[(month, day)] = num_rows_failed
+        helpers.insert_into_postgres_table(month, day, num_rows_failed)
         return num_rows_failed
     else:
         return None
