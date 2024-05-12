@@ -1,4 +1,5 @@
+# op can be apply or delete
 op=$1
 
-# Apply or delete 
-envsubst < kube-deploy.yaml | kubectl --kubeconfig kubeconfig.yaml $op -f -
+kubectl --kubeconfig kubeconfig.yaml $op -f deploy_postgres.yaml
+envsubst < deploy_app.yaml | kubectl --kubeconfig kubeconfig.yaml $op -f -

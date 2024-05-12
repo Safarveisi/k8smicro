@@ -44,7 +44,7 @@ async def analyse_dill_files(times: List[AnalyseRequest]) -> List[dict] | dict:
     logging.info('Analysing dill files for the requested times ...')
     data = [time.dict() for time in times]
     json_data = json.dumps(data)
-    response = await requests.post(
+    response = requests.post(
         BASE_URL+'/failed_stats/', 
         data=json_data, 
     )

@@ -15,6 +15,7 @@ logging.basicConfig(format=log_format, level=logging.INFO)
 
 handlers = {}
 
+
 class AnalyseRequest(BaseModel):
     month: str
     day: str
@@ -24,8 +25,9 @@ async def service_prerequisites() -> None:
     global handlers
     handlers['s3'] = helpers.S3Handler()
     logging.info('S3 resource service client established')
-    helpers.create_postgres_table()
-    logging('Created stats table in the postgres db')
+    handlers['postgres'] = helpers.PostgresHandler()
+    handlers['postgres'].create_postgres_table()
+    logging.info('Created stats table in the postgres db')
 
 
 @asynccontextmanager
@@ -38,20 +40,21 @@ async def lifespan(app: FastAPI) -> None:
 
 app = FastAPI(lifespan=lifespan)
 
+
 async def count_row_with_failed_attrs(
     month: str,
     day: str
 ) -> int | None:
     '''
     Gets all the dill files from a s3 bucket for the given month and day,
-    converts them into a pandas dataframe and counts the number of rows 
-    whose failed_attrs column is not "empty". 
+    converts them into a pandas dataframe and counts the number of rows
+    whose failed_attrs column is not "empty".
     '''
     global handlers
 
     # Check the postgres database
-    if num_rows_failed := helpers \
-                    .exists_in_postgres_table(month, day):
+    if (num_rows_failed := handlers['postgres']
+            .exists_in_postgres_table(month, day)) is not None:
         return num_rows_failed
 
     list_df_validation = []
@@ -60,16 +63,22 @@ async def count_row_with_failed_attrs(
         f'/2024_{month.zfill(2)}_{day.zfill(2)}')
 
     if next(objects.pages()):
+
         # Total number of failed rows
         num_rows_failed = 0
+
         for obj in objects:
+
             d: dict = dill.load(obj.get()['Body'])
             list_df_validation.append(d['df_validation'])
         # Increment num_rows_failed with the number of rows found
         num_rows_failed += pd.concat(list_df_validation, axis=0) \
             .query("failed_attrs != 'empty'").shape[0]
-        helpers.insert_into_postgres_table(month, day, num_rows_failed)
+        # Insert the requested time as well as its result in the postgres table
+        handlers['postgres'].insert_into_postgres_table(
+            month, day, num_rows_failed)
         return num_rows_failed
+
     else:
         return None
 
@@ -86,9 +95,11 @@ async def s3_health_check() -> dict:
 
 
 @app.post('/failed_stats/', status_code=200)
-async def analyse_dill_files(times: List[AnalyseRequest]) -> List[dict]:
+async def analyse_dill_files(
+    times: List[AnalyseRequest]
+) -> List[dict]:
     '''
-    Retuns the number of rows in a pandas dataframe  
+    Retuns the number of rows in a pandas dataframe
     whose 'failed_attrs' attribute is not empty for
     the requested times.
     '''

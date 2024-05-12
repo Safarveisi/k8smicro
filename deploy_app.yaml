@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: web-app
-          image: docker.io/ciaa/web:v0.5.0
+          image: docker.io/ciaa/web:v0.8.0
           resources:
             limits:
               memory: "2000Mi"
@@ -40,7 +40,7 @@ metadata:
   name: caller-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: caller-app
@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
         - name: caller-app
-          image: docker.io/ciaa/caller:v0.5.0
+          image: docker.io/ciaa/caller:v0.8.0
           resources:
             limits:
               memory: "1000Mi"

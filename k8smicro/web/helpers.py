@@ -5,11 +5,6 @@ import psycopg
 import boto3
 from botocore.client import ClientError
 
-# K8s service DNS name
-POSTGRES_SERVICE_DNS_NAME = 'postgres.default.svc.cluster.local'
-POSTGRES_HOST_PORT = f'{POSTGRES_SERVICE_DNS_NAME}:5432'
-DB_URL = f'postgresql://ps_user:SecurePassword@{POSTGRES_HOST_PORT}/ps_db'
-
 
 class S3Handler():
 
@@ -35,46 +30,56 @@ class S3Handler():
         except ClientError:
             return False, 'The bucket does not exist or you have no access'
 
-def exists_in_postgres_table(
-    month: str, day: str
-) -> None | int:
-    with psycopg.connect(DB_URL) as conn:
-        with conn.cursor() as cur:
-            query = f'''
-                SELECT 
-                    failed
-                FROM stats
-                WHERE 
-                    month = {month!r} AND
-                    day = {day!r} 
-            '''
-            cur.execute(query)
-            row = cur.fetchone()
-    return row[0] if row else None
 
+class PostgresHandler():
 
-def create_postgres_table() -> None:
-    with psycopg.connect(DB_URL) as conn:
-        with conn.cursor() as cur:
-            query = f'''
-            CREATE TABLE IF NOT EXISTS stats (
-                month VARCHAR(255) NOT NULL,
-                day VARCHAR(255) NOT NULL,
-                failed INT NOT NULL
-            )
-            '''
-            cur.execute(query)
-            conn.commit()
+    def __init__(self) -> None:
+        # K8s DNS name for the postgres service
+        POSTGRES_SERVICE_DNS_NAME = 'postgres.default.svc.cluster.local'
+        POSTGRES_HOST_PORT = f'{POSTGRES_SERVICE_DNS_NAME}:5432'
+        self.db_url = f'postgresql://ps_user:SecurePassword@{POSTGRES_HOST_PORT}/ps_db'
 
+    def exists_in_postgres_table(
+        self,
+        month: str,
+        day: str
+    ) -> None | int:
+        with psycopg.connect(self.db_url) as conn:
+            with conn.cursor() as cur:
+                query = f'''
+                    SELECT 
+                        failed
+                    FROM stats
+                    WHERE 
+                        month = {month!r} AND
+                        day = {day!r}   
+                '''
+                cur.execute(query)
+                row = cur.fetchone()
+        return row[0] if row else None
 
-def insert_into_postgres_table(
-    month: str,
-    day: str,
-    failed: int
-) -> None:
-    with psycopg.connect(DB_URL) as conn:
-        with conn.cursor() as cur:
-            query = f'''INSERT INTO stats(month,day,failed)
-                        VALUES(%s)'''
-            cur.execute(query, (month, day, failed))
-            conn.commit()
+    def create_postgres_table(self) -> None:
+        with psycopg.connect(self.db_url) as conn:
+            with conn.cursor() as cur:
+                query = f'''
+                CREATE TABLE IF NOT EXISTS stats (
+                    month VARCHAR(255) NOT NULL,
+                    day VARCHAR(255) NOT NULL,
+                    failed INT NOT NULL
+                )
+                '''
+                cur.execute(query)
+                conn.commit()
+
+    def insert_into_postgres_table(
+        self,
+        month: str,
+        day: str,
+        failed: int
+    ) -> None:
+        with psycopg.connect(self.db_url) as conn:
+            with conn.cursor() as cur:
+                query = f'''INSERT INTO stats (month, day, failed)
+                            VALUES (%s, %s, %s)'''
+                cur.execute(query, (month, day, failed))
+                conn.commit()
