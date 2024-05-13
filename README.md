@@ -50,4 +50,4 @@ When you are done, run the following in the command line to remove the deploymen
 
 ### Service Component Graph
 
-<p align="center"><img alt="kind" src="./logo/comps.png" width="600px" height="500px" /></p>
+<p align="center"><img alt="kind" src="./logo/comps.png" width="400px" height="600px" /></p>
