@@ -1,4 +1,4 @@
-# Analysing s3 persisted dill files
+## Analysing s3 persisted dill files
 A web application (based on FastAPI) running on Kubernetes that receives
 requests for a specific month and day in 2024, gathers dill files 
 belonging to the requested time from a S3 bucket, converts them into
@@ -47,3 +47,7 @@ When you are done, run the following in the command line to remove the deploymen
 ```bash
 ./deploy.sh delete
 ```
+
+### Service Component Graph
+
+<p align="center"><img alt="kind" src="./logo/comps.png" width="800px" height="600px" /></p>
