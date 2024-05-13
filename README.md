@@ -33,7 +33,7 @@ service/web-service created
 service/caller-service created
 ```
 
-You then need to map port 8000 of `caller-service` (see `kube-deploy.yaml`) to the port 8000 of the localhost. 
+You then need to map port 8000 of `caller-service` (see `deploy_app.yaml`) to the port 8000 of the localhost. 
 
 ```bash
 kubectl --kubeconfig /path/to/kubeconfig.yaml port-forward svc/caller-serv
